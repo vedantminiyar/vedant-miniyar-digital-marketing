@@ -223,7 +223,7 @@ export function Metrics() {
         desc="Every campaign is measured against what matters to your business. No guaranteed sales, leads, virality or rankings — just honest tracking and improvement." />
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {metrics.map((m, i) => {
-          const I = mIcons[i];
+          const I = mIcons[i] ?? Eye;
           return <div key={m} className="glass rounded-2xl p-6"><I className="h-6 w-6 text-cyan" /><p className="mt-4 font-display font-semibold">{m}</p></div>;
         })}
       </div>
@@ -238,7 +238,7 @@ export function Why() {
       <SectionHead eyebrow="Why work with me" title={<>Affordable Solutions. Professional Execution. <span className="text-gradient">A Strategy Built Around You.</span></>} />
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {reasons.map((r, i) => {
-          const I = rIcons[i];
+          const I = rIcons[i] ?? Wallet;
           return (
             <div key={r.t} className="glass rounded-2xl p-7 transition-colors hover:border-cyan/40">
               <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-brand"><I className="h-5 w-5" /></span>
