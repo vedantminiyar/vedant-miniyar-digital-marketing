@@ -898,6 +898,10 @@ export function Contact() {
           />
           <select name="services" required className={inputCls} aria-label="Services required" defaultValue="">
             <option value="" disabled>Services Required *</option>
+            <option value="Starter Pack">Starter Pack</option>
+            <option value="Growth Pack">Growth Pack</option>
+            <option value="Performance Pack">Performance Pack</option>
+            <option value="Custom Plan">Custom Plan</option>
             {services.map((s) => <option key={s.id} value={s.title}>{s.title}</option>)}
             <option value="Not sure yet">Not sure yet</option>
           </select>
