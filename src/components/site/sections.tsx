@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect, type FormEvent } from "react";
 import {
   Search, Share2, Sparkles, Megaphone, Magnet, Gem, Package, MousePointerClick, MessageCircle, Users, BarChart3,
   Check, ArrowRight, Wallet, Target, Palette, Workflow, Layers, TrendingUp, Quote, Mail, Phone, MapPin, Eye, Activity,
-  Instagram, Play, Pause, ChevronLeft, ChevronRight, Video, X, Maximize2,
+  Instagram, Play, Pause, ChevronLeft, ChevronRight, Video, X, Maximize2, Loader2,
 } from "lucide-react";
 import heroImg from "@/assets/hero.jpg";
 import vedantPhoto from "@/assets/ChatGPT Image Sep 4, 2026, 11_14_17 AM.png";
@@ -751,46 +751,87 @@ export function Faq() {
 const inputCls = "w-full rounded-xl border border-input bg-background/60 px-3.5 sm:px-4 py-2.5 sm:py-3 text-sm placeholder:text-muted-foreground focus:border-cyan focus:outline-none transition-colors";
 
 export function Contact() {
-  const [sent, setSent] = useState<"" | "wa" | "mail">("");
-  const [error, setError] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
 
-  function build(form: HTMLFormElement) {
-    const d = new FormData(form);
-    const get = (k: string) => String(d.get(k) ?? "").trim().slice(0, 1000);
-    if (
-      !get("name") ||
-      !get("business") ||
-      !get("email") ||
-      !get("phone") ||
-      !get("services") ||
-      !get("budget") ||
-      !get("goals") ||
-      !get("message")
-    ) {
-      setError("Please fill in all fields — all fields are compulsory.");
-      return null;
-    }
-    if (!/^\S+@\S+\.\S+$/.test(get("email"))) { setError("Please enter a valid email address."); return null; }
-    setError("");
-    return [
-      `New project enquiry`,
-      `Name: ${get("name")}`, `Business: ${get("business")}`, `Email: ${get("email")}`, `Phone: ${get("phone")}`,
-      `Services: ${get("services")}`, `Budget: ${get("budget")}`, `Goals: ${get("goals")}`, `Message: ${get("message")}`,
-    ].join("\n");
-  }
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const text = build(e.currentTarget);
-    if (!text) return;
-    window.open(waLink(text), "_blank", "noopener");
-    setSent("wa");
+    if (status === "loading") return;
+
+    const form = e.currentTarget;
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    const accessKey = import.meta.env["VITE_WEB3FORMS_ACCESS_KEY"];
+    if (!accessKey) {
+      setStatus("error");
+      setErrorMessage("Contact form is temporarily unavailable (Web3Forms access key not configured). Please reach out directly via WhatsApp or email.");
+      return;
+    }
+
+    setStatus("loading");
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      const formData = new FormData(form);
+      formData.set("access_key", accessKey);
+
+      // Web3Forms botcheck honeypot check
+      if (formData.get("botcheck")) {
+        setStatus("success");
+        setSuccessMessage("Thank you! Your message has been received.");
+        form.reset();
+        return;
+      }
+
+      const payload = Object.fromEntries(formData.entries());
+
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setStatus("success");
+        setSuccessMessage("Thank you! Your project enquiry has been submitted successfully. I will get back to you shortly.");
+        form.reset();
+      } else {
+        setStatus("error");
+        setErrorMessage(data.message || "Something went wrong while sending your message. Please try again or reach out via WhatsApp/email.");
+      }
+    } catch {
+      setStatus("error");
+      setErrorMessage("A network error occurred. Please check your connection and try again.");
+    }
   }
+
   function viaEmail(form: HTMLFormElement | null) {
     if (!form) return;
-    const text = build(form);
-    if (!text) return;
+    const d = new FormData(form);
+    const get = (k: string) => String(d.get(k) ?? "").trim().slice(0, 1000);
+    const text = [
+      `New project enquiry`,
+      `Name: ${get("name")}`,
+      `Business: ${get("business")}`,
+      `Email: ${get("email")}`,
+      `Phone: ${get("phone")}`,
+      `Services: ${get("services")}`,
+      `Budget: ${get("budget")}`,
+      `Goals: ${get("goals")}`,
+      `Message: ${get("message")}`,
+    ].join("\n");
     window.location.href = `mailto:${profile.email}?subject=${encodeURIComponent("Project enquiry")}&body=${encodeURIComponent(text)}`;
-    setSent("mail");
   }
 
   return (
@@ -809,29 +850,113 @@ export function Contact() {
             <Cta href={waLink()} variant="ghost" className="w-full sm:w-auto">Chat with me on WhatsApp</Cta>
           </div>
         </div>
-        <form id="contact-form" onSubmit={onSubmit} className="glass grid gap-3.5 sm:gap-4 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 grid-cols-1 sm:grid-cols-2" noValidate>
-          <input name="name" required maxLength={100} placeholder="Full Name *" className={inputCls} aria-label="Full name" />
-          <input name="business" required maxLength={100} placeholder="Business Name *" className={inputCls} aria-label="Business name" />
-          <input name="email" type="email" required maxLength={150} placeholder="Email Address *" className={inputCls} aria-label="Email" />
-          <input name="phone" type="tel" required maxLength={20} placeholder="Phone or WhatsApp *" className={inputCls} aria-label="Phone" />
+        <form ref={formRef} id="contact-form" onSubmit={onSubmit} className="glass grid gap-3.5 sm:gap-4 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 grid-cols-1 sm:grid-cols-2">
+          {/* Web3Forms Configuration & Spam Protection */}
+          <input type="hidden" name="subject" value="New Portfolio Project Enquiry" />
+          <input type="hidden" name="from_name" value="Portfolio Website" />
+          <input type="checkbox" name="botcheck" className="hidden" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
+
+          <input
+            name="name"
+            type="text"
+            required
+            minLength={2}
+            maxLength={100}
+            placeholder="Full Name *"
+            className={inputCls}
+            aria-label="Full name"
+          />
+          <input
+            name="business"
+            type="text"
+            required
+            maxLength={100}
+            placeholder="Business Name *"
+            className={inputCls}
+            aria-label="Business name"
+          />
+          <input
+            name="email"
+            type="email"
+            required
+            maxLength={150}
+            placeholder="Email Address *"
+            className={inputCls}
+            aria-label="Email"
+          />
+          <input
+            name="phone"
+            type="tel"
+            required
+            minLength={7}
+            maxLength={20}
+            pattern="[0-9+\s\-()]{7,20}"
+            title="Please enter a valid phone number (at least 7 digits)"
+            placeholder="Phone or WhatsApp *"
+            className={inputCls}
+            aria-label="Phone"
+          />
           <select name="services" required className={inputCls} aria-label="Services required" defaultValue="">
             <option value="" disabled>Services Required *</option>
-            {services.map((s) => <option key={s.id}>{s.title}</option>)}
-            <option>Not sure yet</option>
+            {services.map((s) => <option key={s.id} value={s.title}>{s.title}</option>)}
+            <option value="Not sure yet">Not sure yet</option>
           </select>
           <select name="budget" required className={inputCls} aria-label="Approximate budget" defaultValue="">
             <option value="" disabled>Approximate Budget *</option>
-            <option>Under ₹10,000 / month</option><option>₹10,000 – ₹25,000 / month</option><option>₹25,000 – ₹50,000 / month</option><option>₹50,000+ / month</option><option>One-time project</option>
+            <option value="Under ₹10,000 / month">Under ₹10,000 / month</option>
+            <option value="₹10,000 – ₹25,000 / month">₹10,000 – ₹25,000 / month</option>
+            <option value="₹25,000 – ₹50,000 / month">₹25,000 – ₹50,000 / month</option>
+            <option value="₹50,000+ / month">₹50,000+ / month</option>
+            <option value="One-time project">One-time project</option>
           </select>
-          <input name="goals" required maxLength={300} placeholder="Project Goals *" className={cn(inputCls, "sm:col-span-2")} aria-label="Project goals" />
-          <textarea name="message" required maxLength={1000} rows={5} placeholder="Message *" className={cn(inputCls, "sm:col-span-2")} aria-label="Message" />
-          {error && <p role="alert" className="text-sm text-destructive sm:col-span-2">{error}</p>}
-          {sent && <p role="status" className="text-sm text-success sm:col-span-2">{sent === "wa" ? "WhatsApp opened with your details — just press send to reach me." : "Your email app opened with your details — just press send."}</p>}
+          <input
+            name="goals"
+            type="text"
+            required
+            maxLength={300}
+            placeholder="Project Goals *"
+            className={cn(inputCls, "sm:col-span-2")}
+            aria-label="Project goals"
+          />
+          <textarea
+            name="message"
+            required
+            minLength={10}
+            maxLength={1000}
+            rows={5}
+            placeholder="Message *"
+            className={cn(inputCls, "sm:col-span-2")}
+            aria-label="Message"
+          />
+
+          {status === "error" && errorMessage && (
+            <p role="alert" className="text-sm text-destructive sm:col-span-2">{errorMessage}</p>
+          )}
+          {status === "success" && successMessage && (
+            <p role="status" className="text-sm text-success sm:col-span-2">{successMessage}</p>
+          )}
+
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:col-span-2 w-full">
-            <button type="submit" className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] shadow-glow hover:brightness-110 transition-transform active:scale-95">Let's discuss my project <ArrowRight className="h-4 w-4" /></button>
-            <button type="button" onClick={(e) => viaEmail(e.currentTarget.form)} className="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-border px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] hover:border-cyan/60 transition-colors">Send by email instead</button>
+            <button
+              type="submit"
+              disabled={status === "loading"}
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] shadow-glow hover:brightness-110 transition-transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {status === "loading" ? (
+                <>Sending... <Loader2 className="h-4 w-4 animate-spin" /></>
+              ) : (
+                <>Let's discuss my project <ArrowRight className="h-4 w-4" /></>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => viaEmail(e.currentTarget.form)}
+              className="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-border px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] hover:border-cyan/60 transition-colors"
+            >
+              Send by email instead
+            </button>
           </div>
-          <p className="text-xs text-muted-foreground sm:col-span-2">Your details are sent directly via WhatsApp or email — nothing is stored on this website.</p>
+          <p className="text-xs text-muted-foreground sm:col-span-2">Your details are sent securely via Web3Forms — nothing is stored on this website.</p>
         </form>
       </div>
     </Section>
