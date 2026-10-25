@@ -11,7 +11,7 @@ export const profile = {
   phone: "+91-8446342598",
   whatsapp: "918446342598",
   linkedin: "", // add your LinkedIn URL
-  instagram: "", // add your Instagram URL
+  instagram: "https://www.instagram.com/vedu_mnr10?mdxt=cmMwOTY3OHNwZzh6&utm_source=qr",
   tagline: "Your Brand. My Strategy. Real Growth.",
   subTagline: "Smart Marketing. Quality Content. Affordable Pricing.",
 };
@@ -27,12 +27,10 @@ export const services: Service[] = [
   { id: "content", icon: "Sparkles", title: "Content Creation", desc: "Visual content that reflects your brand and objectives.", items: ["Branded Posts & Carousels", "Reels & Short-Form Video", "Captions, Hooks & Copy", "Promotional Creatives"] },
   { id: "ads", icon: "Megaphone", title: "Paid Advertising", desc: "Campaigns that reach relevant audiences.", items: ["Meta Ads — FB & Instagram", "Google Ads", "Audience Targeting", "Optimization & Reporting"] },
   { id: "leads", icon: "Magnet", title: "Lead Generation", desc: "Attract potential customers with targeted campaigns.", items: ["Lead-Gen Strategy", "Audience Research", "Landing-Page Planning", "Lead Quality Tracking"] },
-  { id: "brand", icon: "Gem", title: "Branding & Brand Strategy", desc: "A consistent, recognizable brand identity.", items: ["Positioning & Messaging", "Colors & Typography", "Brand Voice & Guidelines", "Competitor Research"] },
+  { id: "brand", icon: "Gem", title: "Branding & Content Creation", desc: "A consistent, recognizable brand identity and creative visual presence.", items: ["Positioning & Messaging", "Colors & Typography", "Brand Voice & Guidelines", "Competitor Research"] },
   { id: "product", icon: "Package", title: "Product Marketing", desc: "Present products with strategic messaging.", items: ["Product Positioning", "Launch Campaigns", "Product Storytelling", "E-commerce Support"] },
-  { id: "web", icon: "MousePointerClick", title: "Website & Landing-Page Optimization", desc: "Help visitors understand your value.", items: ["Content Recommendations", "Landing-Page Strategy", "CTA Optimization", "Conversion-Flow Improvements"] },
+  { id: "web", icon: "MousePointerClick", title: "Website creation", desc: "Modern, high-converting digital storefronts and landing pages.", items: ["Modern Web Design", "Landing-Page Strategy", "CTA Optimization", "Conversion-Flow Improvements"] },
   { id: "email", icon: "MessageCircle", title: "Email & WhatsApp Marketing", desc: "Communicate with customers and nurture leads.", items: ["Email Campaigns", "Lead Follow-Up Workflows", "WhatsApp Business Campaigns", "Retention Messaging"] },
-  { id: "influencer", icon: "Users", title: "Influencer Marketing", desc: "Relevant creator collaborations.", items: ["Influencer Research", "Collaboration Strategy", "Outreach Preparation", "Performance Review"] },
-  { id: "analytics", icon: "BarChart3", title: "Analytics & Reporting", desc: "Use data to find areas for improvement.", items: ["GA4 Support", "Conversion Tracking", "Ads & Social Insights", "Monthly Recommendations"] },
 ];
 
 export type Plan = {
@@ -43,9 +41,51 @@ export type Plan = {
 };
 
 export const plans: Plan[] = [
-  { name: "Starter", tagline: "Start Smart", audience: "For startups and small businesses beginning their digital journey.", price: "", deliverables: ["Social media setup & optimization", "Monthly content plan", "Branded posts"], content: "[Add quantity]", platforms: "[Add platforms]", timeline: "[Add timeline]", revisions: "[Add revisions]" },
-  { name: "Growth", tagline: "Build Your Presence", audience: "For businesses needing consistent content and structured marketing support.", price: "", deliverables: ["Content calendar & scheduling", "Posts, carousels & reels", "Engagement & monthly report"], content: "[Add quantity]", platforms: "[Add platforms]", timeline: "[Add timeline]", revisions: "[Add revisions]", featured: true },
-  { name: "Performance", tagline: "Grow With Strategy", audience: "For businesses needing campaigns, paid ads and lead-generation planning.", price: "", deliverables: ["Everything in Growth", "Meta / Google ads management", "Lead-generation planning"], content: "[Add quantity]", platforms: "[Add platforms]", timeline: "[Add timeline]", revisions: "[Add revisions]" },
+  {
+    name: "Starter",
+    tagline: "Start Smart",
+    audience: "For startups and small businesses beginning their digital journey.",
+    price: "",
+    deliverables: ["Social media setup & optimization", "Monthly content plan", "Branded posts"],
+    content: "15",
+    platforms: "2",
+    timeline: "3 month",
+    revisions: "basic plan",
+  },
+  {
+    name: "Growth",
+    tagline: "Build Your Presence",
+    audience: "For businesses needing consistent content and structured marketing support.",
+    price: "",
+    deliverables: ["Content calendar & scheduling", "Posts, carousels & reels", "Engagement & monthly report"],
+    content: "25",
+    platforms: "3",
+    timeline: "3 month",
+    revisions: "medium scale plan",
+    featured: true,
+  },
+  {
+    name: "Performance",
+    tagline: "Grow With Strategy",
+    audience: "For businesses needing campaigns, paid ads and lead-generation planning.",
+    price: "",
+    deliverables: ["Everything in Growth", "Meta / Google ads management", "Lead-generation planning"],
+    content: "30",
+    platforms: "4-5",
+    timeline: "3 month",
+    revisions: "premium plan",
+  },
+  {
+    name: "Custom",
+    tagline: "Customizable Plan",
+    audience: "For businesses with unique requirements needing tailored deliverables and flexible scope.",
+    price: "",
+    deliverables: ["Personalized service selection", "Custom content & ad management", "Tailored growth roadmap"],
+    content: "Flexible",
+    platforms: "Custom",
+    timeline: "3 month",
+    revisions: "custom plan",
+  },
 ];
 
 export const portfolioCategories = ["All", "Social Media", "Content Creation", "Branding", "SEO", "Paid Advertising", "Product Marketing", "Lead Generation"] as const;

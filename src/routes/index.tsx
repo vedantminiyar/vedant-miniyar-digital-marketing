@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/Layout";
-import { Hero, About, ServicesGrid, Pricing, Showcase, Portfolio, Metrics, Why, Process, Testimonials, Faq, Contact, FinalCta } from "@/components/site/sections";
+import { Hero, About, Portfolio, Pricing, Showcase, Metrics, Why, Testimonials, Faq, Contact, FinalCta } from "@/components/site/sections";
 
 const title = "Vedant Miniyar | Freelance Digital Marketer in Pune";
 const description = "Explore affordable digital marketing services by Vedant Miniyar, including SEO, social media management, content creation, paid ads, branding, and lead generation.";
@@ -32,13 +32,11 @@ function Index() {
     <SiteLayout>
       <Hero />
       <About />
-      <ServicesGrid limit={6} />
-      <Showcase />
-      <Pricing />
       <Portfolio />
+      <Pricing />
+      <Showcase />
       <Metrics />
       <Why />
-      <Process />
       <Testimonials />
       <Faq />
       <Contact />
