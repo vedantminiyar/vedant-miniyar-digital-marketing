@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/Layout";
 import { PageHero } from "@/components/site/ui";
-import { About, FinalCta, Process, Why } from "@/components/site/sections";
+import { About, FinalCta, Why } from "@/components/site/sections";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -23,7 +23,6 @@ function AboutPage() {
       <PageHero eyebrow="About me" title="More Than Marketing. A Partner in Your Growth." />
       <About />
       <Why />
-      <Process />
       <FinalCta />
     </SiteLayout>
   );
