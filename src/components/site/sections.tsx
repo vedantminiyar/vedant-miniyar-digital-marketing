@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect, type FormEvent } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback, type FormEvent } from "react";
 import {
   Search, Share2, Sparkles, Megaphone, Magnet, Gem, Package, MousePointerClick, MessageCircle, Users, BarChart3,
   Check, ArrowRight, Wallet, Target, Palette, Workflow, Layers, TrendingUp, Quote, Mail, Phone, MapPin, Eye, Activity,
@@ -184,19 +184,24 @@ export function Pricing() {
       </ul>
       <div className="mx-auto max-w-3xl lg:max-w-[780px]">
         <div className="grid gap-5 sm:gap-5.5 grid-cols-1 sm:grid-cols-2 items-stretch">
-          {plans.map((p) => (
+          {plans.map((p, i) => (
             <article
               key={p.name}
               className={cn(
                 "glass relative flex flex-col justify-between h-full rounded-2xl p-5 sm:p-5.5 transition-all duration-300 border border-border/70 hover:border-cyan/40",
-                p.featured && "border-cyan/50 shadow-glow"
+                p.featured && "border-cyan/50 shadow-glow",
+                i === plans.length - 1 && plans.length % 2 !== 0 && "sm:col-span-2 sm:max-w-[370px] sm:mx-auto w-full"
               )}
             >
-              {p.featured && (
+              {p.featured ? (
                 <span className="absolute -top-2.5 left-5 rounded-full bg-gradient-brand px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-primary-foreground shadow-sm">
                   Most popular
                 </span>
-              )}
+              ) : p.badge ? (
+                <span className="absolute -top-2.5 left-5 rounded-full bg-cyan/15 border border-cyan/40 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-cyan shadow-sm">
+                  {p.badge}
+                </span>
+              ) : null}
               
               {/* Compact header with standardized typography & baselines */}
               <div className="flex flex-col flex-1">
@@ -209,9 +214,16 @@ export function Pricing() {
                 </p>
                 
                 <div className="mt-3 pb-2.5 border-b border-border/50">
-                  <p className="text-base sm:text-lg font-bold tracking-tight text-foreground whitespace-nowrap">
-                    {p.price || "Custom quote"}
-                  </p>
+                  <div className="flex items-baseline gap-2.5 flex-wrap">
+                    <p className="text-base sm:text-lg font-bold tracking-tight text-foreground whitespace-nowrap">
+                      {p.price || "Custom quote"}
+                    </p>
+                    {p.originalPrice && (
+                      <span className="text-xs sm:text-sm text-muted-foreground line-through decoration-muted-foreground/80 decoration-1 font-normal">
+                        {p.originalPrice}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <ul className="mt-3 space-y-2 text-xs flex-1">
@@ -245,6 +257,11 @@ export function Pricing() {
                 >
                   Find your package
                 </a>
+                {p.disclaimer && (
+                  <p className="mt-3 text-[10px] sm:text-[10.5px] text-muted-foreground/85 leading-relaxed text-center">
+                    {p.disclaimer}
+                  </p>
+                )}
               </div>
             </article>
           ))}
@@ -263,6 +280,8 @@ function MediaLightbox({
   item: MediaItem | null;
   onClose: () => void;
 }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
     if (!item) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -271,6 +290,22 @@ function MediaLightbox({
     window.addEventListener("keydown", handleKeyDown);
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
+    // Smoothly auto-play video as soon as it is enlarged
+    if (item.type === "video") {
+      const timer = setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = 0;
+          videoRef.current.play().catch(() => {});
+        }
+      }, 50);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener("keydown", handleKeyDown);
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = originalOverflow;
@@ -301,34 +336,25 @@ function MediaLightbox({
         </button>
 
         {/* Media Container */}
-        <div className="relative rounded-2xl overflow-hidden border border-white/15 bg-black/85 shadow-2xl flex items-center justify-center max-h-[82vh] max-w-[92vw]">
+        <div className="relative rounded-2xl overflow-hidden border border-white/15 bg-black/85 shadow-2xl flex items-center justify-center max-h-[86vh] max-w-[92vw]">
           {item.type === "video" ? (
             <video
+              ref={videoRef}
               src={item.src}
+              autoPlay
               controls
               playsInline
               loop
               preload="auto"
-              className="max-h-[80vh] max-w-[90vw] w-auto h-auto object-contain rounded-2xl outline-none"
+              className="max-h-[84vh] max-w-[90vw] w-auto h-auto object-contain rounded-2xl outline-none"
             />
           ) : (
             <img
               src={item.src}
               alt={item.title}
-              className="max-h-[80vh] max-w-[90vw] w-auto h-auto object-contain rounded-2xl select-none"
+              className="max-h-[84vh] max-w-[90vw] w-auto h-auto object-contain rounded-2xl select-none"
             />
           )}
-        </div>
-
-        {/* Bottom Metadata Bar */}
-        <div className="mt-3 sm:mt-4 flex items-center justify-between w-full px-2 text-white">
-          <div className="flex items-center gap-2.5">
-            <span className="rounded-full bg-cyan/20 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-cyan border border-cyan/40">
-              {item.badge}
-            </span>
-            <p className="font-display text-sm sm:text-base font-semibold drop-shadow-md text-foreground">{item.title}</p>
-          </div>
-          <span className="text-[11px] text-muted-foreground hidden sm:inline">Press Esc or click outside to close</span>
         </div>
       </div>
     </div>
@@ -340,11 +366,11 @@ function ShowcaseCard({
   onOpenLightbox,
 }: {
   item: MediaItem;
-  onOpenLightbox: (item: MediaItem) => void;
+  onOpenLightbox: () => void;
 }) {
   return (
     <div
-      onClick={() => onOpenLightbox(item)}
+      onClick={onOpenLightbox}
       className={cn(
         "glass group relative shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden border border-border/80 hover:border-cyan/50 shadow-xl transition-all duration-300 select-none cursor-pointer flex flex-col justify-between",
         item.type === "video"
@@ -354,24 +380,20 @@ function ShowcaseCard({
     >
       {/* Media content */}
       {item.type === "video" ? (
-        <div className="relative h-full w-full bg-black/80 flex items-center justify-center overflow-hidden">
+        <div className="relative h-full w-full bg-black/90 flex items-center justify-center overflow-hidden">
           <video
             src={item.src}
-            muted
             playsInline
             loop
             preload="metadata"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
-          {/* Center Play Button Overlay Cue (paused by default in carousel) */}
-          <div className="absolute inset-0 bg-background/25 flex flex-col items-center justify-center gap-2.5 transition-all group-hover:bg-background/15">
-            <div className="grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-full bg-gradient-brand text-primary-foreground shadow-glow group-hover:scale-110 transition-transform">
-              <Play className="h-6 w-6 sm:h-7 sm:w-7 fill-current ml-0.5 text-white" />
+          {/* Visible "Play" button overlay indicating click to enlarge & play */}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/35 backdrop-blur-[1px] transition-all group-hover:bg-black/20">
+            <div className="grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-full bg-black/60 text-white backdrop-blur-md border border-white/30 shadow-2xl transition-transform group-hover:scale-110">
+              <Play className="h-6 w-6 sm:h-7 sm:w-7 fill-white text-white ml-0.5" />
             </div>
-            <span className="rounded-full bg-background/90 px-3 py-1 text-[11px] font-semibold text-cyan backdrop-blur-md border border-cyan/30 shadow-md">
-              Click to Enlarge
-            </span>
           </div>
         </div>
       ) : (
@@ -383,50 +405,29 @@ function ShowcaseCard({
             loading="lazy"
             className="max-h-full max-w-full object-contain drop-shadow-md transition-transform duration-500 group-hover:scale-105"
           />
-
-          {/* Hover Overlay with Cue */}
-          <div className="absolute inset-0 bg-background/25 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-[2px]">
-            <div className="grid h-12 w-12 place-items-center rounded-full bg-gradient-brand text-primary-foreground shadow-glow group-hover:scale-110 transition-transform">
-              <Maximize2 className="h-5 w-5 text-white" />
-            </div>
-            <span className="rounded-full bg-background/90 px-3 py-1 text-[11px] font-semibold text-cyan backdrop-blur-md border border-cyan/30 shadow-md">
-              Click to Enlarge
-            </span>
-          </div>
         </div>
       )}
-
-      {/* Top Tag Badge */}
-      <div className="absolute top-3.5 left-3.5 z-10 pointer-events-none">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-background/85 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-cyan border border-cyan/30 backdrop-blur-md shadow-md">
-          {item.type === "video" ? <Video className="h-3 w-3 text-cyan" /> : <Sparkles className="h-3 w-3 text-cyan" />}
-          {item.badge}
-        </span>
-      </div>
-
-      {/* Bottom Title Scrim */}
-      <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4 bg-gradient-to-t from-background/95 via-background/70 to-transparent pointer-events-none">
-        <p className="font-display text-sm sm:text-base font-semibold text-foreground line-clamp-1">{item.title}</p>
-        <p className="text-[11px] text-muted-foreground mt-0.5">
-          {item.type === "video" ? "Click to Enlarge Video" : "Click to Enlarge Visual"}
-        </p>
-      </div>
     </div>
   );
 }
 
 export function Showcase() {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const total = showcaseMedia.length;
+  // 3 duplicate sets: [set0, set1 (primary active set), set2]
+  const displayItems = useMemo(
+    () => [...showcaseMedia, ...showcaseMedia, ...showcaseMedia],
+    []
+  );
+
+  const [currentIndex, setCurrentIndex] = useState(total);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(true);
+
   const trackRef = useRef<HTMLDivElement>(null);
   const [offsets, setOffsets] = useState<number[]>([]);
 
-  const total = showcaseMedia.length;
-  // Duplicate list to achieve continuous seamless loop
-  const displayItems = useMemo(() => [...showcaseMedia, ...showcaseMedia], []);
-
-  // Pre-calculate exact offsets for instantaneous, zero-lag arrow navigation
+  // Pre-calculated default offsets for zero-delay initial rendering
   const defaultOffsets = useMemo(() => {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
     const isTablet = typeof window !== "undefined" && window.innerWidth < 1024;
@@ -442,70 +443,73 @@ export function Showcase() {
     });
   }, [displayItems]);
 
-  useEffect(() => {
-    const updateOffsets = () => {
-      if (!trackRef.current) return;
-      const children = Array.from(trackRef.current.children) as HTMLElement[];
-      const gap = window.innerWidth < 640 ? 16 : 20;
-      let currentX = 0;
-      const newOffsets: number[] = [];
-      children.forEach((child) => {
-        newOffsets.push(currentX);
-        currentX += child.offsetWidth + gap;
-      });
-      setOffsets(newOffsets);
-    };
+  const measureOffsets = useCallback(() => {
+    if (!trackRef.current) return;
+    const children = Array.from(trackRef.current.children) as HTMLElement[];
+    if (children.length === 0) return;
+    const newOffsets = children.map((c) => c.offsetLeft);
+    setOffsets(newOffsets);
+  }, []);
 
-    updateOffsets();
-    window.addEventListener("resize", updateOffsets);
-    const timer = setTimeout(updateOffsets, 150);
+  useEffect(() => {
+    measureOffsets();
+    window.addEventListener("resize", measureOffsets);
+    const t1 = setTimeout(measureOffsets, 150);
+    const t2 = setTimeout(measureOffsets, 600);
     return () => {
-      window.removeEventListener("resize", updateOffsets);
-      clearTimeout(timer);
+      window.removeEventListener("resize", measureOffsets);
+      clearTimeout(t1);
+      clearTimeout(t2);
     };
-  }, [displayItems]);
+  }, [measureOffsets]);
 
-  // Continuous auto-advance timer (sliding right to left uninterrupted every 2 seconds)
-  useEffect(() => {
-    if (selectedMedia !== null) return; // Pause auto-sliding only while full-screen lightbox is actively open
-    const interval = setInterval(() => {
-      setTransitionEnabled(true);
-      setCurrentIndex((prev) => (prev >= total ? 1 : prev + 1));
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [selectedMedia, total]);
+  // Infinite Seamless Wrap-around without abrupt snaps using onTransitionEnd
+  const handleTransitionEnd = useCallback(() => {
+    if (currentIndex >= total * 2) {
+      setIsTransitioning(false);
+      setCurrentIndex((prev) => prev - total);
+    } else if (currentIndex < total) {
+      setIsTransitioning(false);
+      setCurrentIndex((prev) => prev + total);
+    }
+  }, [currentIndex, total]);
 
-  // Seamless wrap-around after passing total items
+  // Re-enable smooth transition in the next frame after silent jump
   useEffect(() => {
-    if (currentIndex >= total) {
-      const timer = setTimeout(() => {
-        setTransitionEnabled(false);
-        setCurrentIndex(0);
-      }, 550);
-      return () => clearTimeout(timer);
-    } else if (!transitionEnabled) {
-      const frame = requestAnimationFrame(() => setTransitionEnabled(true));
+    if (!isTransitioning) {
+      const frame = requestAnimationFrame(() => {
+        setIsTransitioning(true);
+      });
       return () => cancelAnimationFrame(frame);
     }
-  }, [currentIndex, total, transitionEnabled]);
+  }, [isTransitioning]);
 
-  const handleNext = () => {
-    setTransitionEnabled(true);
-    setCurrentIndex((prev) => {
-      if (prev >= total) return 1;
-      return prev + 1;
-    });
-  };
+  // Auto-slide every 2 seconds (2000ms), paused if user hovers, touches, or if modal is open
+  useEffect(() => {
+    if (selectedMedia !== null || isPaused) return;
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setCurrentIndex((prev) => prev + 1);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [selectedMedia, isPaused]);
 
-  const handlePrev = () => {
-    setTransitionEnabled(true);
-    setCurrentIndex((prev) => {
-      if (prev <= 0) return total - 1;
-      return prev - 1;
-    });
-  };
+  const handlePrev = useCallback(() => {
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev - 1);
+  }, []);
+
+  const handleNext = useCallback(() => {
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev + 1);
+  }, []);
+
+  const handleCardClick = useCallback((item: MediaItem) => {
+    setSelectedMedia(item);
+  }, []);
 
   const currentTranslateX = offsets[currentIndex] ?? defaultOffsets[currentIndex] ?? (currentIndex * 350);
+  const selectedIndex = currentIndex % total;
 
   return (
     <Section id="content" className="bg-surface overflow-hidden">
@@ -518,35 +522,42 @@ export function Showcase() {
         />
       </div>
 
-      {/* Continuous Carousel Track (Sliding uninterrupted) */}
-      <div className="relative w-full overflow-hidden py-2">
+      {/* Continuous Smooth Carousel Track (Fluid CSS ease-in-out transition) */}
+      <div
+        className="relative w-full overflow-hidden py-2"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
+      >
         <div
           ref={trackRef}
+          onTransitionEnd={handleTransitionEnd}
           style={{
             transform: `translate3d(-${currentTranslateX}px, 0, 0)`,
-            transition: transitionEnabled ? "transform 550ms cubic-bezier(0.16, 1, 0.3, 1)" : "none",
+            transition: isTransitioning
+              ? "transform 750ms cubic-bezier(0.4, 0, 0.2, 1)"
+              : "none",
           }}
           className="flex items-center gap-4 sm:gap-5 will-change-transform min-h-[320px] sm:min-h-[400px] md:min-h-[490px]"
         >
           {displayItems.map((item, idx) => (
-            <ShowcaseCard
-              key={`${item.id}-${idx}`}
-              item={item}
-              onOpenLightbox={(media) => setSelectedMedia(media)}
-            />
+            <div key={`${item.id}-${idx}`} className="shrink-0 flex-none">
+              <ShowcaseCard
+                item={item}
+                onOpenLightbox={() => handleCardClick(item)}
+              />
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Relocated Navigation Arrows & Indicators Directly Below Media Cards */}
+      {/* Navigation Arrows & Indicators Directly Below Media Cards */}
       <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
         <div className="flex items-center gap-3 text-xs sm:text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan/10 px-3 py-1 text-xs font-semibold text-cyan border border-cyan/30">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan animate-pulse" />
-            Creative {(currentIndex % total) + 1} of {total}
-          </span>
-          <span className="text-muted-foreground italic font-serif hidden sm:inline">
-            Click any image or video to open full-screen lightbox
+            Creative {selectedIndex + 1} of {total}
           </span>
         </div>
 

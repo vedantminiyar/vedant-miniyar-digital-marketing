@@ -36,6 +36,9 @@ export const services: Service[] = [
 export type Plan = {
   name: string; tagline: string; audience: string;
   price: string; // e.g. "₹9,999 / month" — leave "" to show "Custom quote"
+  originalPrice?: string;
+  badge?: string;
+  disclaimer?: string;
   deliverables: string[]; content: string; platforms: string; timeline: string; revisions: string;
   featured?: boolean;
 };
@@ -45,9 +48,9 @@ export const plans: Plan[] = [
     name: "Starter",
     tagline: "Start Smart",
     audience: "For startups and small businesses beginning their digital journey.",
-    price: "20000/Month",
+    price: "",
     deliverables: ["Social media setup & optimization", "Branded posts"],
-    content: "15/Month",
+    content: "10/Month",
     platforms: "2",
     timeline: "3 month",
     revisions: "basic plan",
@@ -56,9 +59,9 @@ export const plans: Plan[] = [
     name: "Growth",
     tagline: "Build Your Presence",
     audience: "For businesses needing consistent content and structured marketing support.",
-    price: "40000/Month",
+    price: "",
     deliverables: ["Posts, carousels & reels", "Engagement"],
-    content: "25/Month",
+    content: "15/Month",
     platforms: "3",
     timeline: "3 month",
     revisions: "medium scale plan",
@@ -68,9 +71,9 @@ export const plans: Plan[] = [
     name: "Performance",
     tagline: "Grow With Strategy",
     audience: "For businesses needing campaigns, paid ads and lead-generation planning.",
-    price: "50000/Month",
+    price: "",
     deliverables: ["Everything in Growth", "Meta / Google ads management", "Lead-generation planning"],
-    content: "30/Month",
+    content: "20/Month",
     platforms: "4-5",
     timeline: "3 month",
     revisions: "premium plan",
